@@ -1,0 +1,45 @@
+services:
+
+  chromadb:
+    image: chromadb/chroma:latest
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: 8000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./chat_logs:/app/chat_logs
+    depends_on:
+      - chromadb
+
+  chatbot:
+    build:
+      context: .
+      dockerfile: Dockerfile.chatbot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      BACKEND_URL: http://backend:5000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+
+volumes:
+  chroma_data:

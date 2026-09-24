@@ -1,0 +1,15 @@
+cat << 'EOF' > .dockerignore
+.venv
+venv
+.env
+.git
+.gitignore
+__pycache__
+*.pyc
+
+chat_logs/
+pdf_store/
+
+postgres_data
+chroma_data
+EOF
