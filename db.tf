@@ -1,8 +1,8 @@
 resource "azurerm_postgresql_flexible_server" "postgres_server" {
   name                   = "openrouter-pg-server-${random_string.unique.result}"
   resource_group_name    = azurerm_resource_group.rg.name
-  location               = "canadacentral" 
-  version                = "16"           
+  location               = "canadacentral"
+  version                = "16"
   administrator_login    = var.postgres_admin_login
   administrator_password = var.postgres_admin_password
   storage_mb             = 32768
