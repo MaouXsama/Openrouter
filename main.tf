@@ -11,13 +11,11 @@ provider "azurerm" {
   features {}
 }
 
-# 1. Resource Group
 resource "azurerm_resource_group" "rg" {
   name     = "openrouter-stage5-rg"
   location = var.location
 }
 
-# 2. Virtual Network
 resource "azurerm_virtual_network" "vnet" {
   name                = "openrouter-vnet"
   address_space       = ["10.0.0.0/16"]
@@ -25,7 +23,6 @@ resource "azurerm_virtual_network" "vnet" {
   resource_group_name = azurerm_resource_group.rg.name
 }
 
-# 3. Subnet
 resource "azurerm_subnet" "subnet" {
   name                 = "openrouter-subnet"
   resource_group_name  = azurerm_resource_group.rg.name
@@ -33,7 +30,6 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = ["10.0.1.0/24"]
 }
 
-# 4. Public IP
 resource "azurerm_public_ip" "public_ip" {
   name                = "openrouter-public-ip"
   location            = azurerm_resource_group.rg.location
@@ -42,7 +38,6 @@ resource "azurerm_public_ip" "public_ip" {
   sku                 = "Standard"
 }
 
-# 5. Network Security Group (NSG) to open ports
 resource "azurerm_network_security_group" "nsg" {
   name                = "openrouter-nsg"
   location            = azurerm_resource_group.rg.location
@@ -85,7 +80,6 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-# 6. Network Interface (NIC)
 resource "azurerm_network_interface" "nic" {
   name                = "openrouter-nic"
   location            = azurerm_resource_group.rg.location
@@ -99,13 +93,11 @@ resource "azurerm_network_interface" "nic" {
   }
 }
 
-# Connect NSG to NIC
 resource "azurerm_network_interface_security_group_association" "nsg_assoc" {
   network_interface_id      = azurerm_network_interface.nic.id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-# 7. Virtual Machine (Ubuntu 24.04 LTS, Standard_D2ads_v6, 30GB Disk)
 resource "azurerm_linux_virtual_machine" "vm" {
   name                              = "openrouter-vm"
   location                          = azurerm_resource_group.rg.location
@@ -122,7 +114,7 @@ resource "azurerm_linux_virtual_machine" "vm" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = file("~/.ssh/id_rsa.pub") # تأكد من مسار مفتاح الـ SSH العام لديك
+    public_key = file("~/.ssh/id_rsa.pub")
   }
 
   os_disk {
@@ -142,7 +134,6 @@ resource "azurerm_linux_virtual_machine" "vm" {
     ignore_changes = [custom_data]
   }
 
-  # سكربت تلقائي لتثبيت Docker و Docker Compose فور تشغيل الـ VM
   custom_data = base64encode(<<-EOF
               #!/bin/bash
               set -eux
@@ -208,7 +199,6 @@ resource "azurerm_virtual_machine_extension" "docker_install" {
   })
 }
 
-# إخراج الآي بي العام بعد انتهاء البناء
 output "public_ip_address" {
   value = azurerm_public_ip.public_ip.ip_address
 }

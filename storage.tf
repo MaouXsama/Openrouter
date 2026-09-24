@@ -1,7 +1,7 @@
 resource "azurerm_storage_account" "storage" {
   name                     = "openrouterstorage${random_string.unique.result}"
   resource_group_name      = azurerm_resource_group.rg.name
-  location                 = "canadacentral" # <--- نقل حساب التخزين أيضاً ليكون بجانب قاعدة البيانات في كندا
+  location                 = "canadacentral"
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }

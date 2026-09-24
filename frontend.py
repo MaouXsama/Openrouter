@@ -1,16 +1,13 @@
+import os
 import uuid
+
 import requests
 import streamlit as st
-import os
 
 
-st.set_page_config(page_title="Chatbot Client", layout="wide")
+st.set_page_config(page_title="SDA-Chatbot Project - By Yazeed Komosany", layout="wide")
 
-st.title("Chatbot Stage5 (frontend + backend + database + RAG + Docker compose + Azure VM)")
-
-# 💡 توحيد الرابط الأساسي للـ Backend
-
-#BACKEND_URL = os.environ.get("BACKEND_URL", "http://127.0.0.1:8000")
+st.title("SDA-Chatbot Project - By Yazeed Komosany")
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://backend:5000")
 
@@ -29,10 +26,6 @@ if "chat_names" not in st.session_state:
     st.session_state["chat_names"] = {}
 if "chats_loaded" not in st.session_state:
     st.session_state["chats_loaded"] = False
-
-# =====================================================================
-# 2. تعريف الدوال البرمجية للاتصال بالسيرفر وإدارة الجلسات
-# =====================================================================
 
 def load_chats_from_db():
     try:
@@ -72,6 +65,7 @@ def save_chat_to_db(chat_id, chat_name, messages, pdf_name, pdf_path, pdf_uuid):
     except requests.RequestException as error:
         st.error(f"Failed to save chat: {error}")
 
+
 def delete_chat():
     chat_id = st.session_state["current_chat"]
     if not chat_id:
@@ -88,9 +82,10 @@ def delete_chat():
     except requests.RequestException as error:
         st.error(f"Failed to delete chat: {error}")
 
+
 def select_chat(chat_id):
-    """💡 تحديث الجلسة النشطة المستدعاة في أداة الـ radio"""
     st.session_state["current_chat"] = chat_id
+
 
 def create_chat_with_pdf(chat_name, uploaded_pdf):
     with st.spinner("Uploading and processing document, please wait..."):
@@ -130,14 +125,10 @@ def create_chat(chat_name):
     save_chat_to_db(new_chat_id, chat_name, [], None, None, None)
     st.rerun()
 
-# تحميل المحادثات مرة واحدة عند إقلاع التطبيق
 if not st.session_state["chats_loaded"]:
     load_chats_from_db()
     st.session_state["chats_loaded"] = True
 
-# =====================================================================
-# 3. بناء واجهة التوجيه الجانبية (Sidebar)
-# =====================================================================
 with st.sidebar:
     st.title("Chat Management")
 
@@ -164,7 +155,6 @@ with st.sidebar:
             for chat in st.session_state["history_chats"]
         }
         
-        # ضبط الفهرس النشط الآمن تلافياً لأخطاء الـ Index
         current_id = st.session_state["current_chat"]
         if current_id not in chat_options:
             current_id = list(chat_options.keys())[0] if chat_options else None
@@ -183,9 +173,6 @@ with st.sidebar:
 
         st.button("Delete Chat", on_click=delete_chat, type="primary")
 
-# =====================================================================
-# 4. إعداد نطاق الكائنات والمحتوى الرئيسي الآمن (Main Screen Context)
-# =====================================================================
 current_chat = None
 chat_id = st.session_state["current_chat"]
 chat_name = st.session_state["chat_names"].get(chat_id, "Untitled Chat")
@@ -196,19 +183,16 @@ if chat_id:
             current_chat = chat_session
             break
 
-# عرض المحادثات والصندوق الرئيسي إذا تم تحديد غرفة شات
 if current_chat:
     if current_chat.get("pdf_name"):
         st.info(f"📄 Connected Context: **{current_chat['pdf_name']}** (Using RAG)")
     else:
         st.caption("🌐 Standard Chat Mode")
 
-    # طباعة تاريخ المحادثة التفاعلي الفعال
     for message in current_chat["messages"]:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # صندوق الإدخال الذكي والوحيد بالصفحة (يقوم بالتوجيه التلقائي وفقاً لنوع الشات)
     if prompt := st.chat_input("Your Message:"):
         current_chat["messages"].append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -222,7 +206,6 @@ if current_chat:
                 ]
             }
 
-            # توجيه الطلب لرابط الـ RAG أو الشات العادي بشكل آلي
             if current_chat.get("pdf_uuid"):
                 payload["pdf_uuid"] = current_chat["pdf_uuid"]
                 chat_target_url = RAG_CHAT_URL
@@ -240,7 +223,6 @@ if current_chat:
                 response = st.write_stream(get_stream_response())
                 current_chat["messages"].append({"role": "assistant", "content": response})
                 
-                # تحديث الحفظ التلقائي بقاعدة البيانات
                 save_chat_to_db(
                     chat_id,
                     chat_name,
@@ -254,5 +236,3 @@ if current_chat:
                 current_chat["messages"].pop()
 else:
     st.info("👈 Please select an existing chat or create a new one from the sidebar to begin!")
-
-#python -m streamlit run frontend.py
