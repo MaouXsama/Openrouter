@@ -115,6 +115,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
   network_interface_ids             = [azurerm_network_interface.nic.id]
   vm_agent_platform_updates_enabled = true
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.app.id]
+  }
+
   admin_ssh_key {
     username   = "azureuser"
     public_key = file("~/.ssh/id_rsa.pub") # تأكد من مسار مفتاح الـ SSH العام لديك

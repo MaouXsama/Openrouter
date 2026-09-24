@@ -13,11 +13,9 @@ services:
       context: .
       dockerfile: Dockerfile.backend
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
+      KEY_VAULT_NAME: ${KEY_VAULT_NAME:?KEY_VAULT_NAME is required}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:?AZURE_CLIENT_ID is required}
       CHROMA_HOST: chromadb
       CHROMA_PORT: 8000
     ports:
@@ -32,8 +30,6 @@ services:
       context: .
       dockerfile: Dockerfile.chatbot
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       BACKEND_URL: http://backend:5000
     ports:

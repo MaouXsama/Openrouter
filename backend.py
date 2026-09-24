@@ -22,9 +22,46 @@ from psycopg2.extras import RealDictCursor
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobServiceClient
 
 load_dotenv()
+
+KEY_VAULT_NAME = os.getenv("KEY_VAULT_NAME")
+AZURE_CLIENT_ID = os.getenv("AZURE_CLIENT_ID")
+
+KEY_VAULT_SECRET_MAPPING = {
+    "PROJ-DB-NAME": "DB_NAME",
+    "PROJ-DB-USER": "DB_USER",
+    "PROJ-DB-PASSWORD": "DB_PASSWORD",
+    "PROJ-DB-HOST": "DB_HOST",
+    "PROJ-DB-PORT": "DB_PORT",
+    "PROJ-OPENAI-API-KEY": "OPENROUTER_API_KEY",
+    "PROJ-AZURE-STORAGE-SAS-URL": "AZURE_STORAGE_SAS_URL",
+    "PROJ-AZURE-STORAGE-CONTAINER": "AZURE_STORAGE_CONTAINER",
+    "PROJ-CHROMADB-HOST": "CHROMADB_HOST",
+    "PROJ-CHROMADB-PORT": "CHROMADB_PORT",
+}
+
+
+def load_key_vault_secrets():
+    if not KEY_VAULT_NAME:
+        return
+
+    credential = DefaultAzureCredential(
+        managed_identity_client_id=AZURE_CLIENT_ID or None
+    )
+    secret_client = SecretClient(
+        vault_url=f"https://{KEY_VAULT_NAME}.vault.azure.net",
+        credential=credential,
+    )
+
+    for secret_name, environment_name in KEY_VAULT_SECRET_MAPPING.items():
+        os.environ[environment_name] = secret_client.get_secret(secret_name).value
+
+
+load_key_vault_secrets()
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free"
