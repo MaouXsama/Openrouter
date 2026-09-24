@@ -9,6 +9,7 @@ services:
       - chroma_data:/data
 
   backend:
+    image: ${DOCKERHUB_NAMESPACE:?DOCKERHUB_NAMESPACE is required}/openrouter-backend:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile.backend
@@ -26,6 +27,7 @@ services:
       - chromadb
 
   chatbot:
+    image: ${DOCKERHUB_NAMESPACE:?DOCKERHUB_NAMESPACE is required}/openrouter-chatbot:${IMAGE_TAG:-latest}
     build:
       context: .
       dockerfile: Dockerfile.chatbot
